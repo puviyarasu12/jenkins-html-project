@@ -3,21 +3,42 @@ pipeline {
 
     stages {
 
-        stage('Checkout') {
-            steps {
-                echo 'Getting code from GitHub'
-            }
-        }
-
-        stage('Validate HTML') {
-            steps {
-                echo 'HTML Validation Successful'
-            }
-        }
-
         stage('Build') {
             steps {
-                echo 'Build Successful'
+                echo 'Building Application...'
+
+                bat '''
+                if exist build rmdir /s /q build
+                mkdir build
+                copy index.html build\\
+                '''
+            }
+        }
+
+        stage('Test') {
+            steps {
+                echo 'Testing Application...'
+
+                bat '''
+                if exist build\\index.html (
+                    echo Test Passed
+                ) else (
+                    echo Test Failed
+                    exit /b 1
+                )
+                '''
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                echo 'Deploying Application...'
+
+                bat '''
+                if exist deploy rmdir /s /q deploy
+                mkdir deploy
+                copy build\\index.html deploy\\
+                '''
             }
         }
 
@@ -25,7 +46,11 @@ pipeline {
 
     post {
         success {
-            echo 'Pipeline Completed Successfully'
+            echo 'CI/CD Pipeline Successful'
+        }
+
+        failure {
+            echo 'Pipeline Failed'
         }
     }
 }
